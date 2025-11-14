@@ -1,80 +1,63 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Post, posts } from '../../assets/data/post';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const router = useRouter();
+  const [postsData, setPosts] = useState<Post[]>(posts.slice(0, 1));
+  const [loading, setLoading] = useState(false);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const renderItem = ({ item }: { item: Post }) => (
+    <TouchableOpacity onPress={() => router.push(`/post/${item.id}` as any)}>
+      <View style={styles.postContainerRow}>
+        <View style={styles.postTextContainer}>
+          <Text style={styles.postTitle}>{item.title}</Text>
+          <Text style={styles.postSubtitle}>{item.subtitle}</Text>
+          <Text style={styles.postAuthor}>By {item.author} on {item.date}</Text>
+        </View>
+        {item.postImage ? (
+          <Image source={{ uri: item.postImage }} style={styles.postImageSide} />
+        ) : null}
+      </View>
+    </TouchableOpacity>
+  );
+
+
+  const loadMoreData = () => {
+    if (loading) return;
+    setLoading(true);
+    const newData = posts.slice(postsData.length, postsData.length + 1);
+    setTimeout(() => {
+      setPosts([...postsData, ...newData]);
+      setLoading(false);
+    }, 1000);
+  };
+
+  return (
+    <SafeAreaView  style={{ flex: 1 }}>
+      <Text style={styles.title}>Últimos Posts</Text>
+      <FlatList
+        data={postsData}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (renderItem({ item }))}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 16 }}
+        numColumns={1}
+        onEndReached={loadMoreData}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={loading ? <Text>Loading...</Text> : null}
+      />
+    
+      {/* Botão flutuante */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => router.push('/new')}
+      >
+        <Text style={styles.fabText}>+</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 }
 
@@ -94,5 +77,69 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     position: 'absolute',
+  },
+  postContainer: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  postTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  postSubtitle: {
+    fontSize: 14,
+    color: '#666',
+  },
+  postAuthor: {
+    fontSize: 12,
+    color: '#999',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    margin: 16,
+  },
+  postImage: {
+    width: '100%',
+    height: 200,
+    marginBottom: 8,
+  },
+  postContainerRow: {
+    flexDirection: 'row',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  postImageSide: {
+    width: 100,
+    height: 100,
+    marginRight: 16,
+  },
+  postTextContainer: {
+    flex: 1,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,      // distância do fundo
+    right: 24,       // distância da borda direita
+    backgroundColor: '#007AFF',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 10,      // garante que fique acima dos outros elementos
+  },
+  fabText: {
+    color: '#fff',
+    fontSize: 32,
+    lineHeight: 32,
+    marginBottom: 2,
   },
 });
