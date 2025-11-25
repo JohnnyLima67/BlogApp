@@ -53,7 +53,7 @@ export default function HomeScreen() {
       {/* Botão flutuante */}
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => router.push('/new')}
+        onPress={() => router.push('/post/newpost' as any)}
       >
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
