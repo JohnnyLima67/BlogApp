@@ -42,6 +42,8 @@ export function Routes() {
   }
 
   return (
+    console.log('Role do usuário - Routes Index: ', role),
+    
     <AppRoutes isLoggedIn={isLoggedIn} role={role} />
   );
 }

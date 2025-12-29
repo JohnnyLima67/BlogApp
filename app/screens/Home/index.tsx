@@ -1,17 +1,42 @@
 import { useNavigation } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
+import { getAuth } from "firebase/auth"; // importe o getAuth
 import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAllPosts, Post } from '../../service/postService'; // ajuste o caminho
+import { getUserRole } from '../../service/userService'; // importe a função para obter o papel do usuário
 
-// Recebe role como prop (vem do AppRoutes)
+const auth = getAuth(); // inicialize o auth
+
 export default function HomeScreen({ role }: { role: string | null }) {
+  
+  const [userRole, setUserRole] = useState<string | null>(null); // estado para armazenar o papel do usuário
   const router = useRouter();
   const [postsData, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false); // ✅ estado para pull-to-refresh
   const navigation = useNavigation();
+
+  const fetchUserRole = async () => {
+    // Lógica para buscar o papel do usuário atual
+    try {
+      const uid = auth.currentUser?.uid;
+      if (!uid) {
+        console.warn("User not authenticated");
+        return;
+      }
+      const userRole = await getUserRole(uid);
+      setUserRole(userRole);
+      console.log("User role fetched:", userRole);
+    } catch (error) {
+      console.error("Erro ao buscar o papel do usuário:", error);
+    }
+  }
+
+  useEffect(() => {
+    fetchUserRole();
+  }, []);
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -77,7 +102,7 @@ export default function HomeScreen({ role }: { role: string | null }) {
       />
 
       {/* Botão flutuante só para professor */}
-      {role === "professor" && (
+      {userRole === "professor" && (
         <TouchableOpacity
           style={styles.fab}
           onPress={() => navigation.navigate('screens/post/newpost')}

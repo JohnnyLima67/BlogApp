@@ -98,3 +98,13 @@ export const getUsersByRole = async (role: "aluno" | "professor" | "admin"): Pro
     throw e;
   }
 };
+
+export const getUserRole = async (userId: string): Promise<string | null> => {
+  try {
+    const user = await getUserById(userId);
+    return user ? user.role : null;
+  } catch (e) {
+    console.error("Error getting user role: ", e);
+    throw e;
+  }
+};

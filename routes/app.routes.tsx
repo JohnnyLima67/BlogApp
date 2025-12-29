@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 
+import Alunos from '../app/screens/Alunos/index'; // ✅ importe sua tela de alunos
 import Home from '../app/screens/Home/index';
 import Login from '../app/screens/Login/index';
 import EditPost from '../app/screens/post/[editpost]';
@@ -10,8 +11,8 @@ import PostDetailScreen from '../app/screens/post/[postId]';
 import NewPost from '../app/screens/post/newpost';
 import Professors from '../app/screens/Professors/index';
 import Register from '../app/screens/Register';
+import RegisterAluno from '../app/screens/RegisterAluno/index'; // ✅ importe sua tela de registro de alunos
 import RegisterProfessor from '../app/screens/RegisterProfessor/index';
-
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -46,6 +47,18 @@ function ProfessorsStack() {
 }
 
 /**
+ * Stack para Alunos
+ */
+function AlunosStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Alunos" component={Alunos} />
+      <Stack.Screen name="RegisterAlunos" component={RegisterAluno} />
+    </Stack.Navigator>
+  );
+}
+
+/**
  * Tabs principais (aparecem só depois do login)
  */
 function MainTabs({ role }: { role: string | null }) {
@@ -60,6 +73,8 @@ function MainTabs({ role }: { role: string | null }) {
             iconName = 'home';
           } else if (route.name === 'Professores') {
             iconName = 'person';
+          } else if (route.name === 'Alunos') {
+            iconName = 'school'; // ✅ ícone para alunos
           } else {
             iconName = 'ellipse';
           }
@@ -68,14 +83,19 @@ function MainTabs({ role }: { role: string | null }) {
         },
       })}
     >
-      {/* Passa role para PostStack */}
+      {/* Feed */}
       <Tab.Screen name="Feed">
         {() => <PostStack role={role} />}
       </Tab.Screen>
 
-      {/* ✅ Só mostra a tab Professores se role === "professor" */}
+      {/* Professores - só aparece se role === "professor" */}
       {role === "professor" && (
         <Tab.Screen name="Professores" component={ProfessorsStack} />
+      )}
+
+      {/* ✅ Nova aba Alunos - aparece para professores */}
+      {role === "professor" && (
+      <Tab.Screen name="Alunos" component={AlunosStack} />
       )}
     </Tab.Navigator>
   );
