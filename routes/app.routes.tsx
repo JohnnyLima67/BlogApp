@@ -45,7 +45,7 @@ function MainTabs({ role }: { role: string | null }) {
 
           if (route.name === 'Feed') {
             iconName = 'home';
-          } else if (route.name === 'Perfil') {
+          } else if (route.name === 'Professores') {
             iconName = 'person';
           } else {
             iconName = 'ellipse';
@@ -60,9 +60,9 @@ function MainTabs({ role }: { role: string | null }) {
         {() => <PostStack role={role} />}
       </Tab.Screen>
 
-      {/* ✅ Só mostra a tab Perfil se role === "professor" */}
+      {/* ✅ Só mostra a tab Professores se role === "professor" */}
       {role === "professor" && (
-        <Tab.Screen name="Perfil" component={Register} />
+        <Tab.Screen name="Professores" component={Register} />
       )}
     </Tab.Navigator>
   );
