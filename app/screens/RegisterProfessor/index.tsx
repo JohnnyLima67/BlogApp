@@ -1,6 +1,5 @@
 import { useNavigation } from "@react-navigation/native";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore"; // ✅ importar Firestore
+import { collection, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -10,15 +9,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { auth, db } from "../../firebaseConfig"; // ajuste o caminho
+import { db } from "../../firebaseConfig"; // ajuste o caminho
 
-export default function Register() {
+export default function RegisterProfessor() {
   const navigation = useNavigation<any>();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -27,20 +23,12 @@ export default function Register() {
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
 
   const validateInputs = () => {
-    if (!username.trim() || !email.trim() || !password || !confirmPassword) {
+    if (!username.trim() || !email.trim()) {
       setError("Please fill in all fields.");
       return false;
     }
     if (!validateEmail(email)) {
       setError("Please enter a valid email address.");
-      return false;
-    }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
-      return false;
-    }
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
       return false;
     }
     setError(null);
@@ -54,50 +42,44 @@ export default function Register() {
     setSuccess(null);
 
     try {
-      // Cria usuário no Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
+      // Busca usuário existente pelo email
+      const q = query(collection(db, "users"), where("email", "==", email));
+      const snapshot = await getDocs(q);
 
-      // Atualiza o displayName com o username
-      await updateProfile(user, { displayName: username });
+      if (snapshot.empty) {
+        setError("No user found with this email.");
+        setLoading(false);
+        return;
+      }
 
-      // ✅ Cria documento no Firestore com role default "aluno"
-      await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
-        email: user.email,
+      // Atualiza o primeiro usuário encontrado
+      const userDoc = snapshot.docs[0];
+      const userRef = doc(db, "users", userDoc.id);
+
+      await updateDoc(userRef, {
         name: username,
-        role: "aluno",
-        createdAt: new Date().toISOString(),
+        role: "professor",
       });
 
-      console.log("User registered and Firestore document created:", user.uid);
+      console.log("User updated to professor:", userDoc.id);
 
-
-      setSuccess("Registration successful! Redirecting...");
+      setSuccess("User role updated to professor! Redirecting...");
       setTimeout(() => {
         navigation.navigate("Feed"); // ajuste para sua rota principal
       }, 1000);
     } catch (err: any) {
-      if (err.code === "auth/email-already-in-use") {
-        setError("Email already registered.");
-      } else {
-        setError("Registration failed. Try again.");
-      }
+      console.error("Error updating user:", err);
+      setError("Failed to update user. Try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const isDisabled =
-    loading || !username.trim() || !email.trim() || !password || !confirmPassword;
+  const isDisabled = loading || !username.trim() || !email.trim();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Create Account</Text>
+      <Text style={styles.title}>Grant Professor Role</Text>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
       {success ? <Text style={styles.success}>{success}</Text> : null}
@@ -119,32 +101,6 @@ export default function Register() {
         onChangeText={setEmail}
       />
 
-      <View style={styles.passwordContainer}>
-        <TextInput
-          style={[styles.input, { flex: 1 }]}
-          placeholder="Password"
-          value={password}
-          secureTextEntry={!showPassword}
-          onChangeText={setPassword}
-        />
-        <TouchableOpacity
-          onPress={() => setShowPassword(!showPassword)}
-          style={styles.showPasswordButton}
-        >
-          <Text style={styles.showPasswordText}>
-            {showPassword ? "Hide" : "Show"}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm Password"
-        value={confirmPassword}
-        secureTextEntry={!showPassword}
-        onChangeText={setConfirmPassword}
-      />
-
       <TouchableOpacity
         style={[styles.button, isDisabled ? styles.buttonDisabled : null]}
         onPress={handleRegister}
@@ -153,7 +109,7 @@ export default function Register() {
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Register</Text>
+          <Text style={styles.buttonText}>Grant Role</Text>
         )}
       </TouchableOpacity>
 
@@ -161,7 +117,7 @@ export default function Register() {
         onPress={() => navigation.goBack()}
         style={styles.linkContainer}
       >
-        <Text style={styles.linkText}>Already have an account? Log in</Text>
+        <Text style={styles.linkText}>Back</Text>
       </TouchableOpacity>
     </View>
   );
@@ -171,9 +127,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", padding: 20, backgroundColor: "#f5f5f5" },
   title: { fontSize: 24, fontWeight: "bold", marginBottom: 20, textAlign: "center" },
   input: { height: 50, borderColor: "#ccc", borderWidth: 1, borderRadius: 5, marginBottom: 15, paddingHorizontal: 10, backgroundColor: "#fff" },
-  passwordContainer: { flexDirection: "row", alignItems: "center", marginBottom: 15 },
-  showPasswordButton: { marginLeft: 10 },
-  showPasswordText: { color: "#007BFF", fontWeight: "bold" },
   button: { backgroundColor: "#007BFF", paddingVertical: 15, borderRadius: 5, alignItems: "center" },
   buttonDisabled: { backgroundColor: "#a0a0a0" },
   buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },

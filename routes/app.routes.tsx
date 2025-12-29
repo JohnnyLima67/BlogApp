@@ -5,10 +5,12 @@ import React from 'react';
 
 import Home from '../app/screens/Home/index';
 import Login from '../app/screens/Login/index';
-import Register from '../app/screens/Register';
 import EditPost from '../app/screens/post/[editpost]';
 import PostDetailScreen from '../app/screens/post/[postId]';
 import NewPost from '../app/screens/post/newpost';
+import Professors from '../app/screens/Professors/index';
+import Register from '../app/screens/Register';
+import RegisterProfessor from '../app/screens/RegisterProfessor/index';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -19,7 +21,6 @@ const Tab = createBottomTabNavigator();
 function PostStack({ role }: { role: string | null }) {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {/* Passa role como initialParams para Home */}
       <Stack.Screen
         name="screens/Home/index"
         component={Home}
@@ -28,6 +29,18 @@ function PostStack({ role }: { role: string | null }) {
       <Stack.Screen name="screens/post/[postId]" component={PostDetailScreen} />
       <Stack.Screen name="screens/post/newpost" component={NewPost} />
       <Stack.Screen name="screens/post/[editpost]" component={EditPost} />
+    </Stack.Navigator>
+  );
+}
+
+/**
+ * Stack para Professores
+ */
+function ProfessorsStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Professores" component={Professors} />
+      <Stack.Screen name="RegisterProfessor" component={RegisterProfessor} />
     </Stack.Navigator>
   );
 }
@@ -62,7 +75,7 @@ function MainTabs({ role }: { role: string | null }) {
 
       {/* ✅ Só mostra a tab Professores se role === "professor" */}
       {role === "professor" && (
-        <Tab.Screen name="Professores" component={Register} />
+        <Tab.Screen name="Professores" component={ProfessorsStack} />
       )}
     </Tab.Navigator>
   );
