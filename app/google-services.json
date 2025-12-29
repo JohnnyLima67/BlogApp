@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "212857539314",
+    "project_id": "blogginappposts",
+    "storage_bucket": "blogginappposts.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:212857539314:android:ff11051f1b21cdce8b1e6b",
+        "android_client_info": {
+          "package_name": "com.fiap.bloggingapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjAYfZw8pGTJr-2a0jvGIFSQX9UBxIyt4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
