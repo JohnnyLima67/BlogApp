@@ -37,7 +37,7 @@ export default function Login() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigation.navigate("screens/Home/index"); // ajuste para sua rota principal
+      //navigation.navigate("screens/Home/index"); // ajuste para sua rota principal
     } catch (err: any) {
       setError("Invalid email or password.");
     } finally {

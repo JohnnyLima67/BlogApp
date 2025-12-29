@@ -5,7 +5,8 @@ import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getAllPosts, Post } from '../../service/postService'; // ajuste o caminho
 
-export default function HomeScreen() {
+// Recebe role como prop (vem do AppRoutes)
+export default function HomeScreen({ role }: { role: string | null }) {
   const router = useRouter();
   const [postsData, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
@@ -75,13 +76,15 @@ export default function HomeScreen() {
         onRefresh={onRefresh}            // ✅ função chamada ao deslizar para cima
       />
 
-      {/* Botão flutuante */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => navigation.navigate('screens/post/newpost')}
-      >
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
+      {/* Botão flutuante só para professor */}
+      {role === "professor" && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => navigation.navigate('screens/post/newpost')}
+        >
+          <Text style={styles.fabText}>+</Text>
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 }

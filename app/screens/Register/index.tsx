@@ -1,15 +1,16 @@
 import { useNavigation } from "@react-navigation/native";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore"; // ✅ importar Firestore
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { auth } from "../../firebaseConfig"; // ajuste o caminho
+import { auth, db } from "../../firebaseConfig"; // ajuste o caminho
 
 export default function Register() {
   const navigation = useNavigation<any>();
@@ -53,15 +54,28 @@ export default function Register() {
     setSuccess(null);
 
     try {
-      // Cria usuário no Firebase
+      // Cria usuário no Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
+      const user = userCredential.user;
 
       // Atualiza o displayName com o username
-      await updateProfile(userCredential.user, { displayName: username });
+      await updateProfile(user, { displayName: username });
+
+      // ✅ Cria documento no Firestore com role default "aluno"
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        email: user.email,
+        name: username,
+        role: "aluno",
+        createdAt: new Date().toISOString(),
+      });
+
+      console.log("User registered and Firestore document created:", user.uid);
+
 
       setSuccess("Registration successful! Redirecting...");
       setTimeout(() => {
@@ -143,7 +157,10 @@ export default function Register() {
         )}
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.linkContainer}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={styles.linkContainer}
+      >
         <Text style={styles.linkText}>Already have an account? Log in</Text>
       </TouchableOpacity>
     </View>
